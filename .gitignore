@@ -1,0 +1,10 @@
+/build/
+/.vscode/
+/.idea/
+
+*.o
+*.obj
+*.a
+*.so
+
+compile_commands.json
