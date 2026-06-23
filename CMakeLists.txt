@@ -12,6 +12,7 @@ find_package(SDL2 REQUIRED)
 add_executable(
     lvgl_playground
     src/main.cpp
+    src/app/AppHeader.cpp
     src/app/ViewManager.cpp
     src/views/main/MainView.cpp
     src/views/button_overview/ButtonOverviewView.cpp

@@ -3,6 +3,8 @@
 #include "lvgl/drivers/sdl/lv_sdl_mouse.h"
 #include "lvgl/drivers/sdl/lv_sdl_keyboard.h"
 
+#include "app/AppHeader.h"
+#include "app/AppHeaderViewModel.h"
 #include "app/ViewManager.h"
 #include "views/ViewId.h"
 #include "views/main/MainView.h"
@@ -26,28 +28,35 @@ int main()
     lv_sdl_mouse_create();
     lv_sdl_keyboard_create();
 
+    // Global header (lives on lv_layer_top, persists across screens)
+    AppHeaderViewModel headerVM;
+    AppHeader appHeader(headerVM);
+
+    // ViewManager owns all views and drives the header
+    ViewManager viewManager(headerVM);
+
     // ViewModels
     MainViewModel mainVM;
     ButtonOverviewViewModel buttonOverviewVM;
 
-    // ViewManager
-    ViewManager viewManager;
-
-    // Register views
+    // Register views with their header title and back-button visibility
     viewManager.registerView(ViewId::Main,
-        std::make_unique<MainView>(mainVM));
+        std::make_unique<MainView>(mainVM),
+        "LVGL Playground", /*showBack=*/false);
     viewManager.registerView(ViewId::ButtonOverview,
-        std::make_unique<ButtonOverviewView>(buttonOverviewVM));
+        std::make_unique<ButtonOverviewView>(buttonOverviewVM),
+        "Button Overview", /*showBack=*/true);
 
-    // Wire navigation signals
-    mainVM.navigateToButtonOverview.connect([&]() {
+    // Navigation signals from ViewModels
+    auto conn1 = mainVM.navigateToButtonOverview.connect([&]() {
         viewManager.navigateTo(ViewId::ButtonOverview);
     });
-    buttonOverviewVM.navigateBack.connect([&]() {
-        viewManager.navigateTo(ViewId::Main);
+
+    // Header back button -> ViewManager history pop
+    auto conn2 = headerVM.backRequested.connect([&]() {
+        viewManager.navigateBack();
     });
 
-    // Start on MainView
     viewManager.navigateTo(ViewId::Main);
 
     printf("LVGL SDL app started\n");
