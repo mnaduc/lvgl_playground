@@ -53,7 +53,6 @@ void ClimateView::buildUi()
 
     m_tempConn = m_vm.targetTemperature().valueChanged().connect([this](int temp) {
         updateTempLabel(temp);
-        lv_obj_align(m_tempLabel, LV_ALIGN_CENTER, 0, 0);
     });
 }
 
