@@ -19,6 +19,7 @@ private:
     void updateTempLabel(int temp);
 
     lv_obj_t*    m_screen{nullptr};
+    lv_obj_t*    m_arc{nullptr};
     lv_obj_t*    m_tempLabel{nullptr};
     HomeViewModel& m_vm;
 
