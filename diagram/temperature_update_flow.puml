@@ -1,0 +1,54 @@
+@startuml Temperature Update Flow — MVVM KDBindings
+
+skinparam backgroundColor #F8F9FA
+skinparam sequenceArrowColor #444444
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam sequenceParticipantBorderColor #AAAAAA
+skinparam sequenceParticipantBackgroundColor #FFFFFF
+skinparam sequenceGroupBackgroundColor #F0F4F8
+skinparam sequenceGroupBorderColor #AAAAAA
+skinparam noteBorderColor #CCCCCC
+skinparam noteBackgroundColor #FFFDE7
+skinparam shadowing false
+
+actor        User
+participant "ClimateView"     as CV   #FCE4EC
+participant "ClimateViewModel" as CVM  #E8F8E8
+participant "TemperatureModel\nProperty<int>" as M #EBF5FB
+participant "HomeViewModel"   as HVM  #E8F8E8
+participant "HomeView"        as HV   #FCE4EC
+
+== Binding Setup  (once, during buildUi) ==
+
+note over CV, HV #FFE082
+  <b>MVVM Binding</b>
+  Views subscribe to ViewModel properties.
+  Each subscription returns a ConnectionHandle
+  that keeps the binding alive.
+end note
+
+CV  ->  CVM : targetTemperature().valueChanged()\n.connect(callback)
+CVM --> CV  : ConnectionHandle
+
+HV  ->  HVM : targetTemperature().valueChanged()\n.connect(callback)
+HVM --> HV  : ConnectionHandle
+
+== Runtime: user increments temperature ==
+
+User -> CV  : tap [+]
+CV   -> CVM : increment()
+CVM  -> M   : targetTemperature = get() + 1
+
+group <b>Binding fires</b> — Property<int> notifies all ConnectionHandles  #FFE082
+
+    M   --> CVM : valueChanged(21)
+    CVM --> CV  : <b>bound</b> callback(21)
+    CV  ->  CV  : updateTempLabel(21)
+
+    M   --> HVM : valueChanged(21)
+    HVM --> HV  : <b>bound</b> callback(21)
+    HV  ->  HV  : updateTempLabel(21)\nlv_arc_set_value(21)
+
+end
+
+@enduml

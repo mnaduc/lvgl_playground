@@ -1,0 +1,104 @@
+@startuml Climate App — MVVM KDBindings Architecture
+
+top to bottom direction
+
+skinparam backgroundColor #F8F9FA
+skinparam classBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FAFAFA
+skinparam packageBorderColor #CCCCCC
+skinparam classBorderColor #AAAAAA
+skinparam classFontSize 12
+skinparam packageFontSize 13
+skinparam arrowFontSize 10
+skinparam arrowColor #444444
+skinparam shadowing false
+
+' ─── MODEL ───────────────────────────────────────────────────────────────────
+package "Model" #EBF5FB {
+    class TemperatureModel {
+        + targetTemperature : Property<int>
+    }
+}
+
+' ─── VIEWMODEL ───────────────────────────────────────────────────────────────
+package "ViewModel" #E8F8E8 {
+    class HomeViewModel {
+        + navigateToClimate : Signal<>
+        --
+        + targetTemperature() : Property<int>&
+        + requestClimate()
+    }
+
+    class ClimateViewModel {
+        --
+        + targetTemperature() : Property<int>&
+        + increment()
+        + decrement()
+    }
+
+    class AppHeaderViewModel {
+        + title       : Property<string>
+        + backVisible : Property<bool>
+        + backRequested : Signal<>
+        --
+        + requestBack()
+    }
+}
+
+' ─── VIEW ────────────────────────────────────────────────────────────────────
+package "View  [LVGL]" #FCE4EC {
+    class HomeView {
+        - m_tempConn : ConnectionHandle
+        --
+        + show()
+        - buildUi()
+    }
+
+    class ClimateView {
+        - m_tempConn : ConnectionHandle
+        --
+        + show()
+        - buildUi()
+    }
+
+    class AppHeader {
+        - m_titleConn      : ConnectionHandle
+        - m_backVisibleConn: ConnectionHandle
+        --
+        - buildUi()
+    }
+}
+
+' ─── NAVIGATION ──────────────────────────────────────────────────────────────
+class ViewManager {
+    --
+    + registerView(ViewId, IView*, title, showBack)
+    + navigateTo(ViewId)
+    + navigateBack()
+}
+
+' ─── RELATIONSHIPS ────────────────────────────────────────────────────────────
+
+' ViewModel wraps Model property (exposes Property<int>& reference)
+TemperatureModel -down-> HomeViewModel    : exposes Property<int>&
+TemperatureModel -down-> ClimateViewModel : exposes Property<int>&
+
+' View binds to ViewModel property via valueChanged() → ConnectionHandle  (↓)
+HomeViewModel    -down-> HomeView    : valueChanged() binding
+ClimateViewModel -down-> ClimateView : valueChanged() binding
+AppHeaderViewModel -down-> AppHeader : valueChanged() binding
+
+' View calls ViewModel on user event  (↑ dashed)
+HomeView    -up..> HomeViewModel    : requestClimate()
+ClimateView -up..> ClimateViewModel : increment()\ndecrement()
+AppHeader   -up..> AppHeaderViewModel : requestBack()
+
+' ClimateViewModel writes back to Model (↑)
+ClimateViewModel -up-> TemperatureModel : set Property<int>
+
+' ViewManager sets ViewModel properties directly
+ViewManager -down-> AppHeaderViewModel : title =\nbackVisible =
+ViewManager -down-> HomeView           : show()
+ViewManager -down-> ClimateView        : show()
+
+@enduml
