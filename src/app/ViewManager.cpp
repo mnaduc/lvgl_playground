@@ -32,7 +32,7 @@ void ViewManager::navigateBack()
 void ViewManager::showView(ViewId id)
 {
     auto& entry = m_views[id];
-    m_headerVM.title       = entry.title;
-    m_headerVM.backVisible = entry.showBack;
+    m_headerVM.setTitle(entry.title.c_str());
+    m_headerVM.setBackVisible(entry.showBack);
     entry.view->show();
 }

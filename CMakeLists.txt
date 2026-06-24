@@ -4,7 +4,6 @@ project(lvgl_playground LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(external/KDBindings)
 add_subdirectory(external/lvgl)
 
 find_package(SDL2 REQUIRED)
@@ -30,5 +29,4 @@ target_link_libraries(
     PRIVATE
     lvgl
     SDL2::SDL2
-    KDAB::KDBindings
 )

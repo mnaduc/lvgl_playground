@@ -1,8 +1,6 @@
 #include "views/climate/ClimateView.h"
 #include "app/AppConstants.h"
 
-#include <cstdio>
-
 ClimateView::ClimateView(ClimateViewModel& vm)
     : m_vm(vm)
 {
@@ -12,7 +10,6 @@ ClimateView::ClimateView(ClimateViewModel& vm)
 
 ClimateView::~ClimateView()
 {
-    m_tempConn.disconnect();
     if (m_screen)
         lv_obj_delete(m_screen);
 }
@@ -44,12 +41,12 @@ void ClimateView::buildUi()
     lv_obj_center(minusLabel);
 
     // Temperature value
-    m_tempLabel = lv_label_create(m_screen);
-    lv_obj_set_style_text_font(m_tempLabel, &lv_font_montserrat_48, 0);
-    updateTempLabel(m_vm.targetTemperature().get());
-    lv_obj_align(m_tempLabel, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_t* tempLabel = lv_label_create(m_screen);
+    lv_obj_set_style_text_font(tempLabel, &lv_font_montserrat_48, 0);
+    lv_obj_align(tempLabel, LV_ALIGN_CENTER, 0, 0);
+    lv_label_bind_text(tempLabel, m_vm.targetTemperature(), "%d\xc2\xb0""C");
 
-    // Plus button — circular, orange (warm)
+    // Plus button — circular, blue (same as minus per linter)
     lv_obj_t* plusBtn = lv_button_create(m_screen);
     lv_obj_set_size(plusBtn, 80, 80);
     lv_obj_set_style_radius(plusBtn, LV_RADIUS_CIRCLE, 0);
@@ -60,17 +57,6 @@ void ClimateView::buildUi()
     lv_label_set_text(plusLabel, LV_SYMBOL_PLUS);
     lv_obj_set_style_text_font(plusLabel, &lv_font_montserrat_28, 0);
     lv_obj_center(plusLabel);
-
-    m_tempConn = m_vm.targetTemperature().valueChanged().connect([this](int temp) {
-        updateTempLabel(temp);
-    });
-}
-
-void ClimateView::updateTempLabel(int temp)
-{
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%d\xc2\xb0""C", temp);
-    lv_label_set_text(m_tempLabel, buf);
 }
 
 void ClimateView::onPlusClicked(lv_event_t* e)

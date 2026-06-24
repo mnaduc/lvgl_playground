@@ -51,15 +51,14 @@ int main()
         std::make_unique<ClimateView>(climateVM),
         "Climate", /*showBack=*/true);
 
-    // Navigation signals
-    auto conn1 = homeVM.navigateToClimate.connect([&]() {
+    // Navigation callbacks
+    homeVM.onNavigateToClimate = [&]() {
         viewManager.navigateTo(ViewId::Climate);
-    });
+    };
 
-    // Header back button -> ViewManager history pop
-    auto conn2 = headerVM.backRequested.connect([&]() {
+    headerVM.onBackRequested = [&]() {
         viewManager.navigateBack();
-    });
+    };
 
     viewManager.navigateTo(ViewId::Home);
 

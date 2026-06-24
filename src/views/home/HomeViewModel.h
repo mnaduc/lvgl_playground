@@ -1,17 +1,17 @@
 #pragma once
 
-#include <kdbindings/signal.h>
+#include <functional>
 #include "models/TemperatureModel.h"
 
 class HomeViewModel {
 public:
     explicit HomeViewModel(TemperatureModel& model) : m_model(model) {}
 
-    KDBindings::Signal<> navigateToClimate;
+    std::function<void()> onNavigateToClimate;
 
-    KDBindings::Property<int>& targetTemperature() { return m_model.targetTemperature; }
+    lv_subject_t* targetTemperature() { return &m_model.targetTemperature; }
 
-    void requestClimate() { navigateToClimate.emit(); }
+    void requestClimate() { if (onNavigateToClimate) onNavigateToClimate(); }
 
 private:
     TemperatureModel& m_model;
