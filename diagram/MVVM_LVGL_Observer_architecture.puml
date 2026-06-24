@@ -1,0 +1,105 @@
+@startuml Climate App — MVVM LVGL Observer Architecture
+
+top to bottom direction
+
+skinparam backgroundColor #F8F9FA
+skinparam classBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FAFAFA
+skinparam packageBorderColor #CCCCCC
+skinparam classBorderColor #AAAAAA
+skinparam classFontSize 12
+skinparam packageFontSize 13
+skinparam arrowFontSize 10
+skinparam arrowColor #444444
+skinparam shadowing false
+
+' ─── MODEL ───────────────────────────────────────────────────────────────────
+package "Model" #EBF5FB {
+    class TemperatureModel {
+        + targetTemperature : lv_subject_t
+    }
+}
+
+' ─── VIEWMODEL ───────────────────────────────────────────────────────────────
+package "ViewModel" #E8F8E8 {
+    class HomeViewModel {
+        + onNavigateToClimate : std::function<void()>
+        --
+        + targetTemperature() : lv_subject_t*
+        + requestClimate()
+    }
+
+    class ClimateViewModel {
+        --
+        + targetTemperature() : lv_subject_t*
+        + increment()
+        + decrement()
+    }
+
+    class AppHeaderViewModel {
+        + title       : lv_subject_t
+        + backVisible : lv_subject_t
+        + onBackRequested : std::function<void()>
+        --
+        + setTitle(const char*)
+        + setBackVisible(bool)
+        + requestBack()
+    }
+}
+
+' ─── VIEW ────────────────────────────────────────────────────────────────────
+package "View  [LVGL]" #FCE4EC {
+    class HomeView {
+        ' observers owned by widgets
+        --
+        + show()
+        - buildUi()
+    }
+
+    class ClimateView {
+        ' observers owned by widgets
+        --
+        + show()
+        - buildUi()
+    }
+
+    class AppHeader {
+        ' observers owned by widgets
+        --
+        - buildUi()
+    }
+}
+
+' ─── NAVIGATION ──────────────────────────────────────────────────────────────
+class ViewManager {
+    --
+    + registerView(ViewId, IView*, title, showBack)
+    + navigateTo(ViewId)
+    + navigateBack()
+}
+
+' ─── RELATIONSHIPS ────────────────────────────────────────────────────────────
+
+' ViewModel exposes lv_subject_t* from Model
+TemperatureModel -down-> HomeViewModel    : exposes lv_subject_t*
+TemperatureModel -down-> ClimateViewModel : exposes lv_subject_t*
+
+' View binds widgets directly to lv_subject_t via LVGL binding API  (↓)
+HomeViewModel    -down-> HomeView    : lv_label_bind_text()\nlv_arc_bind_value()
+ClimateViewModel -down-> ClimateView : lv_label_bind_text()
+AppHeaderViewModel -down-> AppHeader : lv_label_bind_text()\nlv_obj_bind_flag_if_eq()
+
+' View calls ViewModel on user event  (↑ dashed)
+HomeView    -up..> HomeViewModel    : requestClimate()
+ClimateView -up..> ClimateViewModel : increment()\ndecrement()
+AppHeader   -up..> AppHeaderViewModel : requestBack()
+
+' ClimateViewModel writes back to Model (↑)
+ClimateViewModel -up-> TemperatureModel : lv_subject_set_int()
+
+' ViewManager drives AppHeaderViewModel
+ViewManager -down-> AppHeaderViewModel : setTitle()\nsetBackVisible()
+ViewManager -down-> HomeView           : show()
+ViewManager -down-> ClimateView        : show()
+
+@enduml

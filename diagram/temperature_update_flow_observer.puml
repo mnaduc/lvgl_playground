@@ -1,0 +1,54 @@
+@startuml Temperature Update Flow — MVVM LVGL Observer
+
+skinparam backgroundColor #F8F9FA
+skinparam sequenceArrowColor #444444
+skinparam sequenceLifeLineBorderColor #AAAAAA
+skinparam sequenceParticipantBorderColor #AAAAAA
+skinparam sequenceParticipantBackgroundColor #FFFFFF
+skinparam sequenceGroupBackgroundColor #F0F4F8
+skinparam sequenceGroupBorderColor #AAAAAA
+skinparam noteBorderColor #CCCCCC
+skinparam noteBackgroundColor #FFFDE7
+skinparam shadowing false
+
+actor        User
+participant "ClimateView"      as CV   #FCE4EC
+participant "ClimateViewModel"  as CVM  #E8F8E8
+participant "TemperatureModel\nlv_subject_t" as M #EBF5FB
+participant "HomeViewModel"    as HVM  #E8F8E8
+participant "HomeView"         as HV   #FCE4EC
+
+== Binding Setup  (once, during buildUi) ==
+
+note over CV, HV #FFE082
+  <b>MVVM Binding — LVGL Observer API</b>
+  Views call LVGL binding functions on ViewModel's lv_subject_t*.
+  LVGL creates lv_observer_t internally, owned by the widget.
+  No ConnectionHandle stored — observer lifetime = widget lifetime.
+end note
+
+CV  ->  CVM : targetTemperature()
+CVM --> CV  : lv_subject_t*
+CV  ->  CV  : lv_label_bind_text(tempLabel, subject, "%d°C")
+
+HV  ->  HVM : targetTemperature()
+HVM --> HV  : lv_subject_t*
+HV  ->  HV  : lv_label_bind_text(tempLabel, subject, "%d°C")\nlv_arc_bind_value(arc, subject)
+
+== Runtime: user increments temperature ==
+
+User -> CV  : tap [+]
+CV   -> CVM : increment()
+CVM  -> M   : lv_subject_set_int(subject, get() + 1)
+
+group <b>Binding fires</b> — lv_subject_t notifies all widget observers  #FFE082
+
+    M   --> CVM : subject updated
+    CVM --> CV  : <b>widget observer</b> → lv_label_set_text(21°C)
+
+    M   --> HVM : subject updated
+    HVM --> HV  : <b>widget observer</b> → lv_label_set_text(21°C)\n                   lv_arc_set_value(21)
+
+end
+
+@enduml
