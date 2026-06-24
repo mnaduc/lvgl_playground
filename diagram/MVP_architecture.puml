@@ -1,0 +1,101 @@
+@startuml Climate App — MVP Architecture
+
+top to bottom direction
+
+skinparam backgroundColor #F8F9FA
+skinparam classBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FAFAFA
+skinparam packageBorderColor #CCCCCC
+skinparam classBorderColor #AAAAAA
+skinparam classFontSize 12
+skinparam packageFontSize 13
+skinparam arrowFontSize 10
+skinparam arrowColor #444444
+skinparam shadowing false
+
+' ─── MODEL ───────────────────────────────────────────────────────────────────
+package "Model" #EBF5FB {
+    class TemperatureModel {
+        + targetTemperature : lv_subject_t
+    }
+}
+
+' ─── PRESENTER ───────────────────────────────────────────────────────────────
+package "Presenter" #E8F8E8 {
+    class HomePresenter {
+        + onNavigateToClimate : function<void()>
+        --
+        + attach(IHomeView&)
+        + handleClimateRequested()
+    }
+
+    class ClimatePresenter {
+        --
+        + attach(IClimateView&)
+        + handleIncrement()
+        + handleDecrement()
+    }
+
+    class AppHeaderPresenter {
+        + onBackRequested : function<void()>
+        --
+        + attachView(IAppHeaderView&)
+        + setTitle(const char*)
+        + setBackVisible(bool)
+    }
+}
+
+' ─── VIEW ────────────────────────────────────────────────────────────────────
+package "View  [passive LVGL]" #FCE4EC {
+    class HomeView {
+        --
+        + show()
+        + showTemperature(int)
+    }
+
+    class ClimateView {
+        --
+        + show()
+        + showTemperature(int)
+    }
+
+    class AppHeader {
+        --
+        + setTitle(const char*)
+        + setBackVisible(bool)
+    }
+}
+
+' ─── NAVIGATION ──────────────────────────────────────────────────────────────
+class ViewManager {
+    --
+    + registerView(ViewId, IView*, title, showBack)
+    + navigateTo(ViewId)
+    + navigateBack()
+}
+
+' ─── RELATIONSHIPS ────────────────────────────────────────────────────────────
+
+' Model notifies Presenter (↓)
+TemperatureModel -down-> HomePresenter    : notify
+TemperatureModel -down-> ClimatePresenter : notify
+
+' Presenter updates View (↓)
+HomePresenter     -down-> HomeView    : showTemperature()
+ClimatePresenter  -down-> ClimateView : showTemperature()
+AppHeaderPresenter -down-> AppHeader  : setTitle()\nsetBackVisible()
+
+' View sends user event to Presenter (↑ dashed)
+HomeView    -up..> HomePresenter      : handleClimateRequested()
+ClimateView -up..> ClimatePresenter   : handleIncrement()\nhandleDecrement()
+AppHeader   -up..> AppHeaderPresenter : requestBack()
+
+' ClimatePresenter writes back to Model (↑)
+ClimatePresenter -up-> TemperatureModel : modify
+
+' ViewManager orchestrates navigation
+ViewManager -down-> AppHeaderPresenter : setTitle() / setBackVisible()
+ViewManager -down-> HomeView           : show()
+ViewManager -down-> ClimateView        : show()
+
+@enduml

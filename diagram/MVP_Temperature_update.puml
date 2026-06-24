@@ -1,0 +1,25 @@
+@startuml Temperature Update Flow
+
+skinparam backgroundColor #F8F9FA
+skinparam sequenceArrowColor #555555
+skinparam sequenceLifeLineBorderColor #888888
+skinparam sequenceParticipantBackgroundColor #FFFFFF
+
+actor User
+participant "ClimateView\n(passive)" as CV #FCE4EC
+participant "ClimatePresenter" as CP #E8F8E8
+participant "TemperatureModel\n(lv_subject_t)" as M #EBF5FB
+participant "HomePresenter" as HP #E8F8E8
+participant "HomeView\n(passive)" as HV #FCE4EC
+
+User -> CV : tap [+]
+CV -> CP : handleIncrement()
+CP -> M : lv_subject_set_int(+1)
+
+M --> CP : onTempChanged (lv_observer)
+M --> HP : onTempChanged (lv_observer)
+
+CP -> CV : showTemperature(21)
+HP -> HV : showTemperature(21)
+
+@enduml
