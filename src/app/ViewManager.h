@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/AppHeaderViewModel.h"
+#include "app/AppHeaderPresenter.h"
 #include "views/IView.h"
 #include "views/ViewId.h"
 
@@ -17,7 +17,7 @@ struct ViewIdHash {
 
 class ViewManager {
 public:
-    explicit ViewManager(AppHeaderViewModel& headerVM);
+    explicit ViewManager(AppHeaderPresenter& presenter);
 
     void registerView(ViewId id, std::unique_ptr<IView> view,
                       std::string title, bool showBack = false);
@@ -34,7 +34,7 @@ private:
 
     void showView(ViewId id);
 
-    AppHeaderViewModel&                                       m_headerVM;
+    AppHeaderPresenter&                                       m_presenter;
     std::unordered_map<ViewId, ViewEntry, ViewIdHash>         m_views;
     std::vector<ViewId>                                       m_history;
 };

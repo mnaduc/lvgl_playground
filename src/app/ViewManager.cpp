@@ -2,8 +2,8 @@
 
 #include <cstdio>
 
-ViewManager::ViewManager(AppHeaderViewModel& headerVM)
-    : m_headerVM(headerVM)
+ViewManager::ViewManager(AppHeaderPresenter& presenter)
+    : m_presenter(presenter)
 {}
 
 void ViewManager::registerView(ViewId id, std::unique_ptr<IView> view,
@@ -32,7 +32,7 @@ void ViewManager::navigateBack()
 void ViewManager::showView(ViewId id)
 {
     auto& entry = m_views[id];
-    m_headerVM.setTitle(entry.title.c_str());
-    m_headerVM.setBackVisible(entry.showBack);
+    m_presenter.setTitle(entry.title.c_str());
+    m_presenter.setBackVisible(entry.showBack);
     entry.view->show();
 }

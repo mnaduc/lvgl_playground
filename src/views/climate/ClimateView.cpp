@@ -1,8 +1,11 @@
 #include "views/climate/ClimateView.h"
+#include "presenters/ClimatePresenter.h"
 #include "app/AppConstants.h"
 
-ClimateView::ClimateView(ClimateViewModel& vm)
-    : m_vm(vm)
+#include <cstdio>
+
+ClimateView::ClimateView(ClimatePresenter& presenter)
+    : m_presenter(presenter)
 {
     m_screen = lv_obj_create(NULL);
     buildUi();
@@ -19,6 +22,13 @@ void ClimateView::show()
     lv_scr_load(m_screen);
 }
 
+void ClimateView::showTemperature(int temp)
+{
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%d\xc2\xb0""C", temp);
+    lv_label_set_text(m_tempLabel, buf);
+}
+
 void ClimateView::buildUi()
 {
     lv_obj_set_style_bg_color(m_screen, lv_color_hex(0xF0F4F8), 0);
@@ -28,7 +38,6 @@ void ClimateView::buildUi()
     lv_obj_set_style_text_color(label, lv_palette_main(LV_PALETTE_GREY), 0);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, -100);
 
-    // Minus button — circular, blue (cool)
     lv_obj_t* minusBtn = lv_button_create(m_screen);
     lv_obj_set_size(minusBtn, 80, 80);
     lv_obj_set_style_radius(minusBtn, LV_RADIUS_CIRCLE, 0);
@@ -40,13 +49,10 @@ void ClimateView::buildUi()
     lv_obj_set_style_text_font(minusLabel, &lv_font_montserrat_28, 0);
     lv_obj_center(minusLabel);
 
-    // Temperature value
-    lv_obj_t* tempLabel = lv_label_create(m_screen);
-    lv_obj_set_style_text_font(tempLabel, &lv_font_montserrat_48, 0);
-    lv_obj_align(tempLabel, LV_ALIGN_CENTER, 0, 0);
-    lv_label_bind_text(tempLabel, m_vm.targetTemperature(), "%d\xc2\xb0""C");
+    m_tempLabel = lv_label_create(m_screen);
+    lv_obj_set_style_text_font(m_tempLabel, &lv_font_montserrat_48, 0);
+    lv_obj_align(m_tempLabel, LV_ALIGN_CENTER, 0, 0);
 
-    // Plus button — circular, blue (same as minus per linter)
     lv_obj_t* plusBtn = lv_button_create(m_screen);
     lv_obj_set_size(plusBtn, 80, 80);
     lv_obj_set_style_radius(plusBtn, LV_RADIUS_CIRCLE, 0);
@@ -62,11 +68,11 @@ void ClimateView::buildUi()
 void ClimateView::onPlusClicked(lv_event_t* e)
 {
     auto* self = static_cast<ClimateView*>(lv_event_get_user_data(e));
-    self->m_vm.increment();
+    self->m_presenter.handleIncrement();
 }
 
 void ClimateView::onMinusClicked(lv_event_t* e)
 {
     auto* self = static_cast<ClimateView*>(lv_event_get_user_data(e));
-    self->m_vm.decrement();
+    self->m_presenter.handleDecrement();
 }

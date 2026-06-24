@@ -4,14 +4,14 @@
 #include "lvgl/drivers/sdl/lv_sdl_keyboard.h"
 
 #include "app/AppHeader.h"
-#include "app/AppHeaderViewModel.h"
+#include "app/AppHeaderPresenter.h"
 #include "app/ViewManager.h"
 #include "models/TemperatureModel.h"
+#include "presenters/HomePresenter.h"
+#include "presenters/ClimatePresenter.h"
 #include "views/ViewId.h"
 #include "views/home/HomeView.h"
-#include "views/home/HomeViewModel.h"
 #include "views/climate/ClimateView.h"
-#include "views/climate/ClimateViewModel.h"
 
 #include <cstdio>
 #include <memory>
@@ -29,34 +29,35 @@ int main()
     lv_sdl_mouse_create();
     lv_sdl_keyboard_create();
 
-    // Shared model
+    // Model
     TemperatureModel tempModel;
 
-    // Global header (lives on lv_layer_top, persists across screens)
-    AppHeaderViewModel headerVM;
-    AppHeader appHeader(headerVM);
+    // App header (presenter drives the passive header view)
+    AppHeaderPresenter headerPresenter;
+    AppHeader appHeader(headerPresenter);
+    ViewManager viewManager(headerPresenter);
 
-    // ViewManager owns all views and drives the header
-    ViewManager viewManager(headerVM);
+    // Presenters
+    HomePresenter    homePresenter(tempModel);
+    ClimatePresenter climatePresenter(tempModel);
 
-    // ViewModels
-    HomeViewModel    homeVM(tempModel);
-    ClimateViewModel climateVM(tempModel);
+    // Views — heap-allocated so unique_ptr can be moved to ViewManager
+    // while Presenter retains a valid reference to the object
+    auto homeView    = std::make_unique<HomeView>(homePresenter);
+    auto climateView = std::make_unique<ClimateView>(climatePresenter);
 
-    // Register views
-    viewManager.registerView(ViewId::Home,
-        std::make_unique<HomeView>(homeVM),
-        "Home", /*showBack=*/false);
-    viewManager.registerView(ViewId::Climate,
-        std::make_unique<ClimateView>(climateVM),
-        "Climate", /*showBack=*/true);
+    // Attach: Presenter subscribes to model and pushes initial value to View
+    homePresenter.attach(*homeView);
+    climatePresenter.attach(*climateView);
 
-    // Navigation callbacks
-    homeVM.onNavigateToClimate = [&]() {
+    viewManager.registerView(ViewId::Home,    std::move(homeView),    "Home",    false);
+    viewManager.registerView(ViewId::Climate, std::move(climateView), "Climate", true);
+
+    homePresenter.onNavigateToClimate = [&]() {
         viewManager.navigateTo(ViewId::Climate);
     };
 
-    headerVM.onBackRequested = [&]() {
+    headerPresenter.onBackRequested = [&]() {
         viewManager.navigateBack();
     };
 

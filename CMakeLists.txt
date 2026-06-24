@@ -13,6 +13,8 @@ add_executable(
     src/main.cpp
     src/app/AppHeader.cpp
     src/app/ViewManager.cpp
+    src/presenters/HomePresenter.cpp
+    src/presenters/ClimatePresenter.cpp
     src/views/home/HomeView.cpp
     src/views/climate/ClimateView.cpp
 )
