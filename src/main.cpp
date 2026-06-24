@@ -6,11 +6,12 @@
 #include "app/AppHeader.h"
 #include "app/AppHeaderViewModel.h"
 #include "app/ViewManager.h"
+#include "models/TemperatureModel.h"
 #include "views/ViewId.h"
-#include "views/main/MainView.h"
-#include "views/main/MainViewModel.h"
-#include "views/button_overview/ButtonOverviewView.h"
-#include "views/button_overview/ButtonOverviewViewModel.h"
+#include "views/home/HomeView.h"
+#include "views/home/HomeViewModel.h"
+#include "views/climate/ClimateView.h"
+#include "views/climate/ClimateViewModel.h"
 
 #include <cstdio>
 #include <memory>
@@ -28,6 +29,9 @@ int main()
     lv_sdl_mouse_create();
     lv_sdl_keyboard_create();
 
+    // Shared model
+    TemperatureModel tempModel;
+
     // Global header (lives on lv_layer_top, persists across screens)
     AppHeaderViewModel headerVM;
     AppHeader appHeader(headerVM);
@@ -36,20 +40,20 @@ int main()
     ViewManager viewManager(headerVM);
 
     // ViewModels
-    MainViewModel mainVM;
-    ButtonOverviewViewModel buttonOverviewVM;
+    HomeViewModel    homeVM(tempModel);
+    ClimateViewModel climateVM(tempModel);
 
-    // Register views with their header title and back-button visibility
-    viewManager.registerView(ViewId::Main,
-        std::make_unique<MainView>(mainVM),
-        "LVGL Playground", /*showBack=*/false);
-    viewManager.registerView(ViewId::ButtonOverview,
-        std::make_unique<ButtonOverviewView>(buttonOverviewVM),
-        "Button Overview", /*showBack=*/true);
+    // Register views
+    viewManager.registerView(ViewId::Home,
+        std::make_unique<HomeView>(homeVM),
+        "Home", /*showBack=*/false);
+    viewManager.registerView(ViewId::Climate,
+        std::make_unique<ClimateView>(climateVM),
+        "Climate", /*showBack=*/true);
 
-    // Navigation signals from ViewModels
-    auto conn1 = mainVM.navigateToButtonOverview.connect([&]() {
-        viewManager.navigateTo(ViewId::ButtonOverview);
+    // Navigation signals
+    auto conn1 = homeVM.navigateToClimate.connect([&]() {
+        viewManager.navigateTo(ViewId::Climate);
     });
 
     // Header back button -> ViewManager history pop
@@ -57,7 +61,7 @@ int main()
         viewManager.navigateBack();
     });
 
-    viewManager.navigateTo(ViewId::Main);
+    viewManager.navigateTo(ViewId::Home);
 
     printf("LVGL SDL app started\n");
 

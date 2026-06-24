@@ -14,8 +14,8 @@ add_executable(
     src/main.cpp
     src/app/AppHeader.cpp
     src/app/ViewManager.cpp
-    src/views/main/MainView.cpp
-    src/views/button_overview/ButtonOverviewView.cpp
+    src/views/home/HomeView.cpp
+    src/views/climate/ClimateView.cpp
 )
 
 target_include_directories(
