@@ -12,6 +12,7 @@ public:
     ~ClimateView() override;
 
     void show() override;
+    HeaderState& headerState() override { return m_vm.headerState; }
 
 private:
     static void onPlusClicked(lv_event_t* e);

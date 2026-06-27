@@ -34,10 +34,6 @@ int main()
     ViewFactory viewFactory(tempModel);
     viewFactory.registerViews(viewManager);
 
-    auto backConn = headerVM.backRequested.connect([&]() {
-        viewManager.navigateBack();
-    });
-
     viewManager.navigateTo(ViewId::Home);
 
     printf("LVGL SDL app started\n");

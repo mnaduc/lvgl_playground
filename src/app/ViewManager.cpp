@@ -4,12 +4,15 @@
 
 ViewManager::ViewManager(AppHeaderViewModel& headerVM)
     : m_headerVM(headerVM)
-{}
-
-void ViewManager::registerView(ViewId id, std::unique_ptr<IView> view,
-                                std::string title, bool showBack)
 {
-    m_views[id] = {std::move(view), std::move(title), showBack};
+    m_backRequestedConn = m_headerVM.backRequested.connect([this]() {
+        navigateBack();
+    });
+}
+
+void ViewManager::registerView(ViewId id, std::unique_ptr<IView> view)
+{
+    m_views[id] = {std::move(view)};
 }
 
 void ViewManager::navigateTo(ViewId id)
@@ -31,8 +34,21 @@ void ViewManager::navigateBack()
 
 void ViewManager::showView(ViewId id)
 {
+    m_headerTitleConn.disconnect();
+    m_headerBackConn.disconnect();
+
     auto& entry = m_views[id];
-    m_headerVM.title       = entry.title;
-    m_headerVM.backVisible = entry.showBack;
+    auto& hs    = entry.view->headerState();
+
+    m_headerVM.title       = hs.title.get();
+    m_headerVM.backVisible = hs.backVisible.get();
+
+    m_headerTitleConn = hs.title.valueChanged().connect([this](const std::string& t) {
+        m_headerVM.title = t;
+    });
+    m_headerBackConn = hs.backVisible.valueChanged().connect([this](bool v) {
+        m_headerVM.backVisible = v;
+    });
+
     entry.view->show();
 }

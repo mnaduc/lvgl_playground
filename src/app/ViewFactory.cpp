@@ -14,12 +14,10 @@ ViewFactory::ViewFactory(TemperatureModel& model)
 void ViewFactory::registerViews(ViewManager& viewManager)
 {
     viewManager.registerView(ViewId::Home,
-        std::make_unique<HomeView>(m_homeVM),
-        "Home", /*showBack=*/false);
+        std::make_unique<HomeView>(m_homeVM));
 
     viewManager.registerView(ViewId::Climate,
-        std::make_unique<ClimateView>(m_climateVM),
-        "Climate", /*showBack=*/true);
+        std::make_unique<ClimateView>(m_climateVM));
 
     m_climateNavConn = m_homeVM.navigateToClimate.connect([&viewManager]() {
         viewManager.navigateTo(ViewId::Climate);

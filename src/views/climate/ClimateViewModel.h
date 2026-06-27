@@ -1,10 +1,16 @@
 #pragma once
 
+#include "app/HeaderState.h"
 #include "models/TemperatureModel.h"
 
 class ClimateViewModel {
 public:
-    explicit ClimateViewModel(TemperatureModel& model) : m_model(model) {}
+    explicit ClimateViewModel(TemperatureModel& model)
+        : m_model(model)
+        , headerState("Climate", /*backVisible=*/true)
+    {}
+
+    HeaderState headerState;
 
     KDBindings::Property<int>& targetTemperature() { return m_model.targetTemperature; }
 

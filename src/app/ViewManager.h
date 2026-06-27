@@ -4,8 +4,8 @@
 #include "views/IView.h"
 #include "views/ViewId.h"
 
+#include <kdbindings/signal.h>
 #include <memory>
-#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -19,8 +19,7 @@ class ViewManager {
 public:
     explicit ViewManager(AppHeaderViewModel& headerVM);
 
-    void registerView(ViewId id, std::unique_ptr<IView> view,
-                      std::string title, bool showBack = false);
+    void registerView(ViewId id, std::unique_ptr<IView> view);
 
     void navigateTo(ViewId id);
     void navigateBack();
@@ -28,8 +27,6 @@ public:
 private:
     struct ViewEntry {
         std::unique_ptr<IView> view;
-        std::string            title;
-        bool                   showBack{false};
     };
 
     void showView(ViewId id);
@@ -37,4 +34,8 @@ private:
     AppHeaderViewModel&                                       m_headerVM;
     std::unordered_map<ViewId, ViewEntry, ViewIdHash>         m_views;
     std::vector<ViewId>                                       m_history;
+
+    KDBindings::ConnectionHandle                              m_headerTitleConn;
+    KDBindings::ConnectionHandle                              m_headerBackConn;
+    KDBindings::ConnectionHandle                              m_backRequestedConn;
 };
