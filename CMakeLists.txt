@@ -13,6 +13,7 @@ add_executable(
     lvgl_playground
     src/main.cpp
     src/app/AppHeader.cpp
+    src/app/ViewFactory.cpp
     src/app/ViewManager.cpp
     src/views/home/HomeView.cpp
     src/views/climate/ClimateView.cpp

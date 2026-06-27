@@ -5,16 +5,11 @@
 
 #include "app/AppHeader.h"
 #include "app/AppHeaderViewModel.h"
+#include "app/ViewFactory.h"
 #include "app/ViewManager.h"
 #include "models/TemperatureModel.h"
-#include "views/ViewId.h"
-#include "views/home/HomeView.h"
-#include "views/home/HomeViewModel.h"
-#include "views/climate/ClimateView.h"
-#include "views/climate/ClimateViewModel.h"
 
 #include <cstdio>
-#include <memory>
 
 int main()
 {
@@ -29,35 +24,17 @@ int main()
     lv_sdl_mouse_create();
     lv_sdl_keyboard_create();
 
-    // Shared model
     TemperatureModel tempModel;
 
-    // Global header (lives on lv_layer_top, persists across screens)
     AppHeaderViewModel headerVM;
     AppHeader appHeader(headerVM);
 
-    // ViewManager owns all views and drives the header
     ViewManager viewManager(headerVM);
 
-    // ViewModels
-    HomeViewModel    homeVM(tempModel);
-    ClimateViewModel climateVM(tempModel);
+    ViewFactory viewFactory(tempModel);
+    viewFactory.registerViews(viewManager);
 
-    // Register views
-    viewManager.registerView(ViewId::Home,
-        std::make_unique<HomeView>(homeVM),
-        "Home", /*showBack=*/false);
-    viewManager.registerView(ViewId::Climate,
-        std::make_unique<ClimateView>(climateVM),
-        "Climate", /*showBack=*/true);
-
-    // Navigation signals
-    auto conn1 = homeVM.navigateToClimate.connect([&]() {
-        viewManager.navigateTo(ViewId::Climate);
-    });
-
-    // Header back button -> ViewManager history pop
-    auto conn2 = headerVM.backRequested.connect([&]() {
+    auto backConn = headerVM.backRequested.connect([&]() {
         viewManager.navigateBack();
     });
 
