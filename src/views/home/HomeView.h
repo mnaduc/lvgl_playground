@@ -12,7 +12,7 @@ public:
     ~HomeView() override;
 
     void show() override;
-    HeaderState& headerState() override { return m_vm.headerState; }
+    IViewModel& viewModel() override { return m_vm; }
 
 private:
     static void onClimateClicked(lv_event_t* e);

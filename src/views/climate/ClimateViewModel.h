@@ -1,16 +1,16 @@
 #pragma once
 
-#include "app/HeaderState.h"
+#include "views/IViewModel.h"
 #include "models/TemperatureModel.h"
 
-class ClimateViewModel {
+class ClimateViewModel : public IViewModel {
 public:
     explicit ClimateViewModel(TemperatureModel& model)
         : m_model(model)
-        , headerState("Climate", /*backVisible=*/true)
+        , m_headerState("Climate", /*backVisible=*/true)
     {}
 
-    HeaderState headerState;
+    HeaderState& headerState() override { return m_headerState; }
 
     KDBindings::Property<int>& targetTemperature() { return m_model.targetTemperature; }
 
@@ -19,4 +19,5 @@ public:
 
 private:
     TemperatureModel& m_model;
+    HeaderState       m_headerState;
 };

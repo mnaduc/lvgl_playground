@@ -38,7 +38,7 @@ void ViewManager::showView(ViewId id)
     m_headerBackConn.disconnect();
 
     auto& entry = m_views[id];
-    auto& hs    = entry.view->headerState();
+    auto& hs    = entry.view->viewModel().headerState();
 
     m_headerVM.title       = hs.title.get();
     m_headerVM.backVisible = hs.backVisible.get();

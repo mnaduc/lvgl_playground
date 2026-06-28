@@ -1,17 +1,18 @@
 #pragma once
 
 #include <kdbindings/signal.h>
-#include "app/HeaderState.h"
+#include "views/IViewModel.h"
 #include "models/TemperatureModel.h"
 
-class HomeViewModel {
+class HomeViewModel : public IViewModel {
 public:
     explicit HomeViewModel(TemperatureModel& model)
         : m_model(model)
-        , headerState("Home", /*backVisible=*/false)
+        , m_headerState("Home", /*backVisible=*/false)
     {}
 
-    HeaderState          headerState;
+    HeaderState& headerState() override { return m_headerState; }
+
     KDBindings::Signal<> navigateToClimate;
 
     KDBindings::Property<int>& targetTemperature() { return m_model.targetTemperature; }
@@ -20,4 +21,5 @@ public:
 
 private:
     TemperatureModel& m_model;
+    HeaderState       m_headerState;
 };
